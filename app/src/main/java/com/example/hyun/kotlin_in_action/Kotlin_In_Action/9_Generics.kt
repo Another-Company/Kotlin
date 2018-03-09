@@ -1,5 +1,13 @@
 package com.example.hyun.kotlin_in_action.Kotlin_In_Action
 
+import android.app.Activity
+import android.app.Service
+import android.content.Context
+import android.content.Intent
+import android.support.v4.content.ContextCompat.startActivity
+import java.security.Provider
+import java.util.*
+
 
 //  76> 제네릭 타입 파라미터
 //  - 제너릭스를 사용하면 타입 파라미터를 받는 타입을 정의할 수 있다
@@ -153,10 +161,159 @@ fun main307() {
 //  -> 이는 제네릭 클래스 인스턴스가 그 인스턴스를 생성할 때 쓰인 타입 인자에 대한 정보를 유지 하지 않는 다는 뜻이다
 //  -> 즉, List<String> 객체를 만들고 그 안에 문자열을 여럿 넣더라도 실행 시점에서는 그 객체를 오직 List로만 볼 수 있다
 //     그 List객체가 어떤 타입의 원소를 저장하는지 실행 시점에서는 알 수 없다
-
 //  - 타입 인자를 따로 저장하지 않기 때문에 실행 시점에 타입 인자를 검사 할 수 없다 (타입소거로 인해 생기는 한계)
-//  -
 
+//  - 제네릭 타입으로 타입 캐스팅하기
+//  - ex>
+fun printSum1(c: Collection<*>) { // 인자를 알 수 없는 제네릭 타입을 표현할 때 스타 프로젝션을 사용한다
+    val intList = c as? List<Int> ?: throw IllegalArgumentException("List is expected")
+    // -> 타입을 알수 없음으로 캐스팅은 항상 성공 한다 -> unchecked cast(검사 할 수 없는 캐스팅) 경고가 나온다
+    print(intList.sum())
+}
+
+fun main308() {
+    printSum1(listOf(1, 2, 3)) // -> 6
+    printSum1(setOf(1, 2, 3))// -> IllegalArgumentException : List is expected 오류 발생
+    printSum1(listOf("a", "b", "c"))
+    // -> List<Int> 인지는 모른다(List 인지만 알 수 있다) -> 캐스팅 성공
+    // -> 문자열 리스트에 대해 sum 함수가 호출 된다 sum 이 실행 되는 도중에 ClassCastException이 발생한다
+}
+
+//  - 알려진 타입 인자를 사용해 타입 검사하기
+fun printSum2(c: Collection<Int>) {
+    if (c is List<Int>) {
+        print(c.sum())
+    }
+}
+
+//  inline 함수 안에서는 타입 인자를 사용 할 수 있다 -> 타입 인자 실체화
+//  - 실체화한 타입 파라미터를 사용한 함수 선언
+//  - 제네릭 함수가 호출되도 그 함수의 본문에서는 호출 시 쓰인 타입 인자를 알 수 없다
+//  - ex>
+
+fun <T> isA1(value: Any) = value is T // 컴파일 오류 -> 코드가 실행될때 컴파일러는 T의 타입을 알수 없기 때문
+inline fun <reified T> isA(value: Any) = value is T // 컴파일 성공 -> 타입 인자 실체화
+
+fun main309() {
+    isA<String>("abc") // -> true
+    isA<String>(123) // -> false
+
+    val items = listOf("one", 2, "three")
+    items.filterIsInstance<String>() // -> [one, three] 타입 인자 실체화를 이용 하여 구현되었다
+}
+
+
+//  78> 실체화한 타입 파라미터로 클래스 참조 대신
+//  - ex>
+inline fun <reified T : Activity> Context.startActivity() {
+    val intent = Intent(this, T::class.java)
+    startActivity(intent)
+}
+
+fun main310() {
+    startActivity<DetailActivity>()
+}
+//  - 실체화한 타입 파라미터에는 몇가지 제약이 있다.
+//  - 하기와 같은 경우에 실체화한 타입 파라미터를 사용할 수 있다
+//  - 1. 타입 검사와 캐스팅 (is, !is, as, as?)
+//  - 2. 10장 에서 설명할 코틀린 리프렉션 API(::class)
+//  - 3. 코틀린 타입에 대응하는 java.lang.class 를 얻기(::class.java)
+//  - 4. 다른 함수를 호출할 때 타입 인자로 사용
+
+//  - 하기와 같은 경우에는 사용 할 수 없다
+//  - 1. 타입 파라미터 클래스의 인스턴스 생성하기
+//  - 2. 타입 파라미터 클래스의 동반 객체 메소드 호출하기
+//  - 3. 실체화한 타입 파라미터를 요구하는 함수를 호출하면서 실체화하지 않은 타입 파라미터로 받은 타입을 타입 인자로 넘기기
+//  - 4. 클래스 프로퍼티 인라인 함수가 아닌 함수의 타입 파라미터를 reified로 지정 하기
+
+//  - 주의 할점
+//  -> 실체화한 타입 파라미터를 사용하는 함수는 자신에게 전달되는 모든 람다를 인라이닝 한다.
+//     람다 내부에서 타입 파라미터를 사용하는 방식에 따라서는 람다를 인라이닝 할 수 없는 경우도 생기고 성능상의 문제로
+//     인라이닝을 원하지 않 을 수도 있다 -> noinline을 사용 해서 해결 해
+
+//  79> 변성
+//  - 변성(variance)개념은 List<String>, List<Any>와 같이 기저 타입이 같고 타입 인자가 다른 여러 타입으로 서로 어떤
+//    관계가 있는지 설명하는 개념이다
+//  - 직접 제네릭 클래스나 함수를 정의하는 경우 변성을 꼭 이해해야 한다
+//  - 변성을 잘 활용하면 사용에 불편하지 않으면서 타입 안전성을 보장하는 API를 만들 수 있다
+
+//  - 변성이 있는 이유 : 인자를 함수에 넘기기
+//  - ex> 안전한 케이스
+fun printContents(list: List<Any>) {
+    print(list.jointoString())
+}
+
+fun main311() {
+    printContents(listOf("abc", "abc"))
+    // 안전하다
+    // 각원소를 Any로 취급하며 모든 String은 Any타입이기도 하므로 완전히 안전하다
+}
+
+//  - ex> 불안전한 케이스
+fun addAnswer(list: MutableList<Any>) {
+    list.add(42)
+}
+
+fun main312() {
+    val strings = mutableListOf("abc", "bac")
+    addAnswer(strings)
+}
+//  -> List<String>은 List<Any>의 하위 타입이다
+//  -> 하지만 MultableList<String>은 MutableList<Any>의 하위 타입이 아니다 (무공변)
+//  -> 무공변(invariant) : 제네릭 타입을 인스턴스화 할때 타입 인자로 서로 다른 타입이 들어가면 인스턴스 타입 사이의 하위 타입
+//                       관계가 성립하지 않으면 그 제네릭 타입을 무공변이라고 한다
+
+
+//  80> 클래스 타입 하위 타입
+//  - String, String?, Int, Int? 는 모두 타입이다
+//  - List, MutableList 는 타입이 아니다
+//  - List<String>, List<Int> 는 타입이다
+//  - Int는 Number의 하위타입(subtype)이다, Number는 Int의 상위타입(supertype)이다
+//  - ex> 어떤 타입이 다른 타입의 하위 타입인지 검사하기
+fun test(i: Int) {
+    val n: Number = i // Int가 Number의 하위 타입이어서 컴파일 된다
+    fun f(s: String) {}
+    f(i) // Int가 String의 하위 타입이 아니어서 컴파일되지 않는다
+}
+//  - 간단한 경우 하위 타입은 하위 클래스와 근본적으로 같
+//  - null이 될 수 없는 타입은 null이 될 수 있는 타입의 하위 타입이다
+
+
+//  - 공변성 : 하위 타입 관계를 유지
+//  -> A가 B의 하위 타입일 때 Producer<A>가 Producer<B>의 하윕 타입이면 공변적이다
+//  - ex> 제네릭 클래스가 타입 파라미터에 대해 공변적임을 표시하려면 타입 파라미터 이름 앞에 'out'을 붙여야 한다
+interface Producer<out T> { // 공변성 선언 키워드 out
+    fun produce(): T
+}
+
+//  - ex> 무공변 컬렉션 역할을 하는 클래스 정의하기
+open class Animal {
+    fun feed() {}
+}
+
+class Herd<out T : Animal> { // 여기에서 공변성으로 만들어 주지 않으면
+    val size: Int get() = 3
+    operator fun get(i: Int): T {}
+}
+
+fun feedAll(animals: Herd<Animal>) {
+    for (i in 0 until animals.size) {
+        animals[i].feed()
+    }
+}
+
+class Cat : Animal(){
+    fun cleanLitter(){}
+}
+fun takCareOfCats(cats: Herd<Cat>){
+    for(i in 0 until cats.size){
+        cats[i].cleanLitter()
+        feedAll(cats) //  여기에서 오류가 발생한다
+    }
+}
+// -> feedAll 에서 발생하는 오류를 해결 하는 방법
+// 1. 공변성으로 만들어줘서 해결 한다 (권장되는 해결방법)
+// 2. 캐스팅해서 해결 한다 (하지마라고 권장함)
 
 
 
