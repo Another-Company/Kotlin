@@ -46,13 +46,31 @@ val sb = StringBuilder("Kotlin?")
 //  - destructuring declaration(구조 분해 선언)을 사용하면 복합적인 값을 분해해서 여러 변수에 나눠 담을 수 있다
 
 // 21> infix (127p)
+//  - 산술을 표현하는 방법에는 세가지가 있다 (전위+AB, 중위A+B, 후위AB+)
 //  - 대표적으로 to가 있음
 // ex>
 val map = mapOf(1 to "one", 2 to "two")
-//  - 즉 1.to("one") 이렇게 써야 하는데 to 다음에 올 수 있는지 유일하고 하나 이기 때문에 괄호와 . 을 생략한다
 
-// 23> destructuring declaration (127p)
-//  - ex>
+//  - 즉 1.to("one") 이렇게 써야 하는데 to 다음에 올 수 있는지 유일하고 하나 이기 때문에 괄호와 . 을 생략한다
+// ex>
+fun Int.multiply1(x: Int): Int { // extention function
+    return this * x
+}
+
+infix fun Int.multiply2(x: Int): Int { // infix
+    return this * x
+}
+fun main222(){
+    2.multiply1(3)
+    3 multiply2 4     // infix 함수를 사용하면 이런 식으로 사용할 수 있다
+}
+
+// 23> destructuring declaration (127p) -> 구조분해 선언
+//  - 객체의 멤버를 하나하나 따로 선언 하는 방식?
+//  - ex>1
+val position = Position(10,20) // 기본 방식
+val (a,b) = Position(10,20) // 분할 선언 방식
+//  - ex>2
 val (number, name) = 1 to "one"
 for((index, element) in collection.withIndex()){
 
@@ -97,6 +115,7 @@ fun User.validateBeforeSave() {
     validate(name, "Name") // name에 User클래스에서의 name 변수 user의 name이 아님
     validate(address, "Address")
 }
+
 //  - 2단계 사용 방법
 fun saveUser3(user: User) {
     user.validateBeforeSave()

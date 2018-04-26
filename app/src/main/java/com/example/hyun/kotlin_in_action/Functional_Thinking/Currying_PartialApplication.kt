@@ -10,7 +10,7 @@ package com.example.hyun.kotlin_in_action.Functional_Thinking
 
 // 전부다 풀어서 쓴 표현법
 fun add(a: Int): (Int) -> (Int) -> Int {
-    // add2 는 함수 두개를 리턴하고 마지막으로 Int를 리턴한다
+    // add 는 함수 두개를 리턴하고 마지막으로 Int를 리턴한다
     // 함수 리턴 -> (Int) 괄호를 써서 표현한다 -> Int를 반환하는 함수라는 뜻
     return fun(b: Int): (Int) -> Int {
         return fun(c: Int): Int {
@@ -44,6 +44,7 @@ fun main100() {
 
 // Partial application(부분 적용) 하는 방법
 // 다인식 함수의 일부 인수를 고정값으로 지정한 일인식 함수를 만드는 방
+}
 
 // ex 1>
 fun area(pi: Int, n: Int, r: Int): Int {

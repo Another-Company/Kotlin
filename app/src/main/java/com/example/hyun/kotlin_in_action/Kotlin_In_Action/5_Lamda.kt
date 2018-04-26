@@ -12,7 +12,7 @@ import java.io.File
 data class Persons(val name: String, val age: Int)  // data 클래스여야만 한다
 
 val people = listOf(Persons("Alice", 29), Persons("Bob", 31))
-val oldest = people.maxBy { it.age }    // data 클래스가 아니면 age가 안나온다
+val oldest = people.maxBy { this.age }    // data 클래스가 아니면 age가 안나온다
 val oldest2 = people.maxBy(Persons::age)    // 이렇게 해도 가능 하다 -> 단지 함수나 프로퍼티를 반환하는 역할을 수행하는 람다는 멤버 참조로 대치할 수 있다
 
 // 람다 식을 만든는 방법

@@ -18,8 +18,52 @@ package com.example.hyun.kotlin_in_action.Kotlin_In_Action
 //  - language.add(“Kotlin”)  -> 이게 가능 하다
 
 // 5> enum (78p)
+//  - 범주 내에서 가능한 것만을 표시하고 싶을 때 사용 한, 내부에 있는 것 하나하나가 객체이다
 //  - class 말고 enum을 사용 하는 경우는 같은 형태를 갖고 있지만 값이 다른 객체를 만들어 놓고 사용 하고 싶을 때 사용 한다
 //  - enum 안에도 property나 function을 정의 할 수 있다
+//  - ex> type-safe enum
+enum class Direction {
+    NORTH, SOUTH, WEST, EAST
+    // 각 열거 형 상수는 하나의 객체이다. enum 상수는 쉼표로 구분된다
+}
+
+//  - ex> 각 열거형은 enum 클래스의 인스턴스이기 때문에 초기화 할 수 있다
+enum class Color1(val rgb: Int) {
+    RED(0xFF0000),
+    GREEN(0x00FF00),
+    BLUE(0x0000FF)
+}
+enum class Weekdays(val kr: String) {
+    SUN("일"), MON("화"), TUE("수"), WED("목"), THE("금"), FRI("토"), SAT("일");
+    // 즉, 월화수목금토일 전부다 클래스이지만 Weekdays 범주 안에 있고 같은 초기화 방식을 사용한다
+    // ("일") 이게 초기화 해주는 방식
+    fun showToday(){
+
+    }
+}
+
+//  - ex> 열거형 상수는 자신의 익명 클래스를 선언할 수 있다
+enum class ProtocolState {
+    WAITING {
+        override fun signal() = TALKING
+    },
+    TALKING {
+        override fun signal() = WAITING
+    };
+
+    abstract fun signal(): ProtocolState
+}
+
+
+fun main12313() {
+    val d1: Direction = Direction.WEST
+    val d2: Int = Direction.WEST.ordinal // ordinal -> Direction에 정의된 WEST의 순서(index)
+    val cr1: Color1 = Color1.GREEN
+    val today = Weekdays.FRI.showToday()
+
+
+    ProtocolState.WAITING.signal()
+}
 
 // 6> when(80p)
 //  - when 의 분기 조건은 임의의 객체를 허용 한다 (자바 switch 는 불가능)
@@ -40,7 +84,7 @@ package com.example.hyun.kotlin_in_action.Kotlin_In_Action
 // 9> while, do while 은 자바와 완전히 동일하다
 
 // 10>  for (i in a..b) ,  for (i in a downTo b)  (90p)
-//  - for(int i =0; i < x; i++) 의 형태의  반복문을 대신한다
+//  - for(int i =0; i < x; i++) 의 형태의 반복문을 대신한다
 //  - a, b 를 모두 포함한다 (닫힌 구간)
 
 // 11> 증감을 갖고 있는 반복문 (92p)
